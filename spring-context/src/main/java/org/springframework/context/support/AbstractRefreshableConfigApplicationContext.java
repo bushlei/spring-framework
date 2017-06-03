@@ -64,6 +64,8 @@ public abstract class AbstractRefreshableConfigApplicationContext extends Abstra
 	 * <p>If not set, the implementation may use a default as appropriate.
 	 */
 	public void setConfigLocation(String location) {
+		// String CONFIG_LOCATION_DELIMITERS = ",; \t\n";
+		// 从CONFIG_LOCATION_DELIMITERS可以看出，在web.xml里面设置contextConfigLocation的param-value时，可以用",; \t\n"来分隔多个配置文件。
 		setConfigLocations(StringUtils.tokenizeToStringArray(location, CONFIG_LOCATION_DELIMITERS));
 	}
 

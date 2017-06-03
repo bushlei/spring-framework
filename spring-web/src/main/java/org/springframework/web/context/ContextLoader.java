@@ -255,9 +255,10 @@ public class ContextLoader {
 	 * @see #CONFIG_LOCATION_PARAM
 	 */
 	public WebApplicationContext initWebApplicationContext(ServletContext servletContext) {
-		//PS : ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE=WebApplicationContext.class.getName() + ".ROOT" 根上下文的名称
-		//PS : 默认情况下，配置文件的位置和名称是： DEFAULT_CONFIG_LOCATION = "/WEB-INF/applicationContext.xml"
-		//在整个web应用中，只能有一个根上下文
+		// ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE = WebApplicationContext.class.getName() + ".ROOT" 根上下文的名称
+		// WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE = org.springframework.web.context.WebApplicationContext.ROOT
+		// 默认情况下，配置文件的位置和名称是： DEFAULT_CONFIG_LOCATION = "/WEB-INF/applicationContext.xml"
+		// 在整个web应用中，只能有一个根上下文
 		if (servletContext.getAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE) != null) {
 			throw new IllegalStateException(
 					"Cannot initialize context because there is already a root application context present - " +
@@ -286,9 +287,12 @@ public class ContextLoader {
 					if (cwac.getParent() == null) {
 						// The context instance was injected without an explicit parent ->
 						// determine parent for root web application context, if any.
+						// 看看有没有父上下文，如果有就会将父上下问的信息合并到本上下文中
+						// 此方法直接返回null
 						ApplicationContext parent = loadParentContext(servletContext);
 						cwac.setParent(parent);
 					}
+					// 初始化WebApplicationContext
 					configureAndRefreshWebApplicationContext(cwac, servletContext);
 				}
 			}
@@ -339,11 +343,14 @@ public class ContextLoader {
 	 * @see ConfigurableWebApplicationContext
 	 */
 	protected WebApplicationContext createWebApplicationContext(ServletContext sc) {
+		// 决定使用哪个WebApplicationContext
 		Class<?> contextClass = determineContextClass(sc);
+		// 判断自定义的WebContextContext类是否实现了ConfigurableWebApplicationContext接口
 		if (!ConfigurableWebApplicationContext.class.isAssignableFrom(contextClass)) {
 			throw new ApplicationContextException("Custom context class [" + contextClass.getName() +
 					"] is not of type [" + ConfigurableWebApplicationContext.class.getName() + "]");
 		}
+		// 利用反射创建WebApplicationContext实现类对象
 		return (ConfigurableWebApplicationContext) BeanUtils.instantiateClass(contextClass);
 	}
 
@@ -356,6 +363,7 @@ public class ContextLoader {
 	 * @see org.springframework.web.context.support.XmlWebApplicationContext
 	 */
 	protected Class<?> determineContextClass(ServletContext servletContext) {
+		// 配置的WebApplicationContext实现类
 		String contextClassName = servletContext.getInitParameter(CONTEXT_CLASS_PARAM);
 		if (contextClassName != null) {
 			try {
@@ -367,6 +375,7 @@ public class ContextLoader {
 			}
 		}
 		else {
+			// 默认的WebApplicationContext配置在ContextLoader.properties文件中，默认为XmlWebApplicationContext
 			contextClassName = defaultStrategies.getProperty(WebApplicationContext.class.getName());
 			try {
 				return ClassUtils.forName(contextClassName, ContextLoader.class.getClassLoader());
@@ -379,6 +388,7 @@ public class ContextLoader {
 	}
 
 	protected void configureAndRefreshWebApplicationContext(ConfigurableWebApplicationContext wac, ServletContext sc) {
+		// 设置id
 		if (ObjectUtils.identityToString(wac).equals(wac.getId())) {
 			// The application context id is still set to its original default value
 			// -> assign a more useful id based on available information
@@ -393,9 +403,13 @@ public class ContextLoader {
 			}
 		}
 
+		// 给ConfigurableWebApplicationContext设置ServletContext，这样设置之后，从spring容器内部，就可以获取到ServletContext了，所以是很重要的
 		wac.setServletContext(sc);
+		// 得到web.xml中ServletContext参数contextConfigLocation对应的配置信息
+		// 设置spring配置文件的路径，如果没有配置的话，之后就默认会在WEB-INF下寻找applicationContext.xml；如果配置了的话，就会在指定的路径加载配置文件
 		String configLocationParam = sc.getInitParameter(CONFIG_LOCATION_PARAM);
 		if (configLocationParam != null) {
+			// 将配置信息进行解析并设置
 			wac.setConfigLocation(configLocationParam);
 		}
 
