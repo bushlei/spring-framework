@@ -486,6 +486,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 		long startTime = System.currentTimeMillis();
 
 		try {
+			// 将Servlet与spring容器关联
 			this.webApplicationContext = initWebApplicationContext();
 			initFrameworkServlet();
 		}
@@ -515,10 +516,13 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 	 * @see #setContextConfigLocation
 	 */
 	protected WebApplicationContext initWebApplicationContext() {
+		// 得到根上下文
 		WebApplicationContext rootContext =
 				WebApplicationContextUtils.getWebApplicationContext(getServletContext());
 		WebApplicationContext wac = null;
 
+		//如果webApplicationContext已经不为空，表示这个Servlet类是通过编程式注册到容器中的(Servlet 3.0 +中的ServletContext.addServlet（）)，
+		//上下文也由编程式传入。若这个传入的上下文还没有被初始化，将rootContext上下文设置为它的父上下文，然后将其初始化，否则直接使用。
 		if (this.webApplicationContext != null) {
 			// A context instance was injected at construction time -> use it
 			wac = this.webApplicationContext;
@@ -530,8 +534,10 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 					if (cwac.getParent() == null) {
 						// The context instance was injected without an explicit parent -> set
 						// the root application context (if any; may be null) as the parent
+						// 设置父上下文
 						cwac.setParent(rootContext);
 					}
+					// 配置或者刷新应用上下文
 					configureAndRefreshWebApplicationContext(cwac);
 				}
 			}
@@ -645,9 +651,11 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 			}
 		}
 
+		//设置springMVC IOC容器的相关属性
 		wac.setServletContext(getServletContext());
 		wac.setServletConfig(getServletConfig());
 		wac.setNamespace(getNamespace());
+		// 添加针对ContextRefreshListener事件的监听
 		wac.addApplicationListener(new SourceFilteringListener(wac, new ContextRefreshListener()));
 
 		// The wac environment's #initPropertySources will be called in any case when the context
@@ -658,8 +666,10 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 			((ConfigurableWebEnvironment) env).initPropertySources(getServletContext(), getServletConfig());
 		}
 
+		// 空方法
 		postProcessWebApplicationContext(wac);
 		applyInitializers(wac);
+		//初始化springMVC各种的相关配置，各种注入的Controller，配置文件等
 		wac.refresh();
 	}
 

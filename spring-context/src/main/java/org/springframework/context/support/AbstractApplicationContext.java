@@ -506,43 +506,58 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 	@Override
 	public void refresh() throws BeansException, IllegalStateException {
+		// 容器在启动之前要获得对象锁，保证容器只有一个启动
 		synchronized (this.startupShutdownMonitor) {
 			// Prepare this context for refreshing.
-			// 容器预先准备，记录容器启动时间和标记
+			// 容器预先准备，记录容器启动时间和标记active
+			// 将Environment初始化时设置的StubPropertySource：占位属性源替换为ServletContext和ServletConfig对应的PropertySource
 			prepareRefresh();
 
 			// Tell the subclass to refresh the internal bean factory.
+			// 创建BeanFactory，如果已有就销毁，没有就创建。此方法实现了对BeanDefinition的装载(重点)
 			ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
 
 			// Prepare the bean factory for use in this context.
+			// 为该上下文配置已经生成的BeanFactory
 			prepareBeanFactory(beanFactory);
 
 			try {
 				// Allows post-processing of the bean factory in context subclasses.
+				//在BeanDefinition被装载后，提供一个修改BeanFactory的入口
+				//可以调用用户自定义的BeanFactory来对已经生成的BeanFactory进行修改
 				postProcessBeanFactory(beanFactory);
 
 				// Invoke factory processors registered as beans in the context.
+				// 在bean初始化之前，提供对BeanDefinition修改入口，PropertyPlaceholderConfigurer在这里被调用
 				invokeBeanFactoryPostProcessors(beanFactory);
 
 				// Register bean processors that intercept bean creation.
+				//注册各种BeanPostProcessors，用于在bean被初始化时进行拦截，进行额外初始化操作
 				registerBeanPostProcessors(beanFactory);
 
 				// Initialize message source for this context.
+				// 提取配置中定义的messageSource，并将其记录在Spring的容器中，也就是AbstractApplicatrionContext中
+				// 初始化MessageSource消息源，如果beanFactory不存在此bean则采用默认的配置并设置父类MessageSource
 				initMessageSource();
 
 				// Initialize event multicaster for this context.
+				// 初始化ApplicationEventMulticaster事件，默认使用SimpleApplicationEventMulticaster事件->广播器：观察者模式
 				initApplicationEventMulticaster();
 
 				// Initialize other special beans in specific context subclasses.
+				// 初始化themeSource主题源，默认使用ResourceBundleThemeSource
 				onRefresh();
 
 				// Check for listener beans and register them.
+				// 注册ApplicationListener beans到广播集合中
 				registerListeners();
 
 				// Instantiate all remaining (non-lazy-init) singletons.
+				// 初始化所有未初始化的非懒加载的单例Bean
 				finishBeanFactoryInitialization(beanFactory);
 
 				// Last step: publish corresponding event.
+				// 结束Spring上下文刷新,发布事件通知
 				finishRefresh();
 			}
 
@@ -584,6 +599,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		}
 
 		// Initialize any placeholder property sources in the context environment
+		// 将Environment初始化时设置的StubPropertySource：占位属性源替换为ServletContext和ServletConfig对应的PropertySource
 		initPropertySources();
 
 		// Validate that all properties marked as required are resolvable
@@ -812,12 +828,14 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 		// Do not initialize FactoryBeans here: We need to leave all regular beans
 		// uninitialized to let post-processors apply to them!
+		//放入前文创建的SimpleApplicationEventMultlcaster中
 		String[] listenerBeanNames = getBeanNamesForType(ApplicationListener.class, true, false);
 		for (String listenerBeanName : listenerBeanNames) {
 			getApplicationEventMulticaster().addApplicationListenerBean(listenerBeanName);
 		}
 
 		// Publish early application events now that we finally have a multicaster...
+		//设置earlyApplicationEvents集合为空，让finishRefresh()可执行剩下的ApplicationEvent
 		Set<ApplicationEvent> earlyEventsToProcess = this.earlyApplicationEvents;
 		this.earlyApplicationEvents = null;
 		if (earlyEventsToProcess != null) {

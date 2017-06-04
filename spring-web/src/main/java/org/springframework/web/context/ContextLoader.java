@@ -281,6 +281,7 @@ public class ContextLoader {
 			}
 			if (this.context instanceof ConfigurableWebApplicationContext) {
 				ConfigurableWebApplicationContext cwac = (ConfigurableWebApplicationContext) this.context;
+				// AbstractApplicationContext中的active属性，在AbstractApplicationContext.refresh().prepareRefresh()中设置为true
 				if (!cwac.isActive()) {
 					// The context has not yet been refreshed -> provide services such as
 					// setting the parent context, setting the application context id, etc
@@ -416,8 +417,10 @@ public class ContextLoader {
 		// The wac environment's #initPropertySources will be called in any case when the context
 		// is refreshed; do it eagerly here to ensure servlet property sources are in place for
 		// use in any post-processing or initialization that occurs below prior to #refresh
+		// 会创建一个StandardServletEnvironment，并且通过AbstractEnvironment()构造函数调用customizePropertySources()初始化propertySources等参数
 		ConfigurableEnvironment env = wac.getEnvironment();
 		if (env instanceof ConfigurableWebEnvironment) {
+			// 将上面env初始化时设置的StubPropertySource：占位属性源替换为ServletContext和ServletConfig对应的PropertySource
 			((ConfigurableWebEnvironment) env).initPropertySources(sc, null);
 		}
 
