@@ -484,10 +484,15 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * Initialize the strategy objects that this servlet uses.
 	 * <p>May be overridden in subclasses in order to initialize further strategy objects.
 	 */
+	//初始化SpringMVC的一些策略，也是springMVC主要的组件
 	protected void initStrategies(ApplicationContext context) {
+		//文件上传解析，如果请求类型是multipart将通过MultipartResolver进行文件上传解析
 		initMultipartResolver(context);
+		// 初始化一些多语言实现相关的类
 		initLocaleResolver(context);
+		// 初始化主题解析器
 		initThemeResolver(context);
+		// 初始化HandlerMapping，HandlerMapping的工作就是为每个请求找到合适的请求找到一个处理器handler
 		initHandlerMappings(context);
 		initHandlerAdapters(context);
 		initHandlerExceptionResolvers(context);
@@ -503,6 +508,7 @@ public class DispatcherServlet extends FrameworkServlet {
 	 */
 	private void initMultipartResolver(ApplicationContext context) {
 		try {
+			//bean id被写死，在配置的时候需要注意,文件上传时需要注入bean名称为multipartResolver的类
 			this.multipartResolver = context.getBean(MULTIPART_RESOLVER_BEAN_NAME, MultipartResolver.class);
 			if (logger.isDebugEnabled()) {
 				logger.debug("Using MultipartResolver [" + this.multipartResolver + "]");
@@ -567,11 +573,13 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * <p>If no HandlerMapping beans are defined in the BeanFactory for this namespace,
 	 * we default to BeanNameUrlHandlerMapping.
 	 */
+	//会加载HandlerMapping，默认使用BeanNameUrlHandlerMapping
 	private void initHandlerMappings(ApplicationContext context) {
 		this.handlerMappings = null;
 
 		if (this.detectAllHandlerMappings) {
 			// Find all HandlerMappings in the ApplicationContext, including ancestor contexts.
+			// 默认加载所有的HandlerMapping
 			Map<String, HandlerMapping> matchingBeans =
 					BeanFactoryUtils.beansOfTypeIncludingAncestors(context, HandlerMapping.class, true, false);
 			if (!matchingBeans.isEmpty()) {
