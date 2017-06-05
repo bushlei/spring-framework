@@ -486,7 +486,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 		long startTime = System.currentTimeMillis();
 
 		try {
-			// ½«ServletÓëspringÈİÆ÷¹ØÁª
+			// å°†Servletä¸springå®¹å™¨å…³è”
 			this.webApplicationContext = initWebApplicationContext();
 			initFrameworkServlet();
 		}
@@ -516,13 +516,13 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 	 * @see #setContextConfigLocation
 	 */
 	protected WebApplicationContext initWebApplicationContext() {
-		// µÃµ½¸ùÉÏÏÂÎÄ
+		// å¾—åˆ°æ ¹ä¸Šä¸‹æ–‡
 		WebApplicationContext rootContext =
 				WebApplicationContextUtils.getWebApplicationContext(getServletContext());
 		WebApplicationContext wac = null;
 
-		//Èç¹ûwebApplicationContextÒÑ¾­²»Îª¿Õ£¬±íÊ¾Õâ¸öServletÀàÊÇÍ¨¹ı±à³ÌÊ½×¢²áµ½ÈİÆ÷ÖĞµÄ(Servlet 3.0 +ÖĞµÄServletContext.addServlet£¨£©)£¬
-		//ÉÏÏÂÎÄÒ²ÓÉ±à³ÌÊ½´«Èë¡£ÈôÕâ¸ö´«ÈëµÄÉÏÏÂÎÄ»¹Ã»ÓĞ±»³õÊ¼»¯£¬½«rootContextÉÏÏÂÎÄÉèÖÃÎªËüµÄ¸¸ÉÏÏÂÎÄ£¬È»ºó½«Æä³õÊ¼»¯£¬·ñÔòÖ±½ÓÊ¹ÓÃ¡£
+		//å¦‚æœwebApplicationContextå·²ç»ä¸ä¸ºç©ºï¼Œè¡¨ç¤ºè¿™ä¸ªServletç±»æ˜¯é€šè¿‡ç¼–ç¨‹å¼æ³¨å†Œåˆ°å®¹å™¨ä¸­çš„(Servlet 3.0 +ä¸­çš„ServletContext.addServletï¼ˆï¼‰)ï¼Œ
+		//ä¸Šä¸‹æ–‡ä¹Ÿç”±ç¼–ç¨‹å¼ä¼ å…¥ã€‚è‹¥è¿™ä¸ªä¼ å…¥çš„ä¸Šä¸‹æ–‡è¿˜æ²¡æœ‰è¢«åˆå§‹åŒ–ï¼Œå°†rootContextä¸Šä¸‹æ–‡è®¾ç½®ä¸ºå®ƒçš„çˆ¶ä¸Šä¸‹æ–‡ï¼Œç„¶åå°†å…¶åˆå§‹åŒ–ï¼Œå¦åˆ™ç›´æ¥ä½¿ç”¨ã€‚
 		if (this.webApplicationContext != null) {
 			// A context instance was injected at construction time -> use it
 			wac = this.webApplicationContext;
@@ -534,10 +534,10 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 					if (cwac.getParent() == null) {
 						// The context instance was injected without an explicit parent -> set
 						// the root application context (if any; may be null) as the parent
-						// ÉèÖÃ¸¸ÉÏÏÂÎÄ
+						// è®¾ç½®çˆ¶ä¸Šä¸‹æ–‡
 						cwac.setParent(rootContext);
 					}
-					// ÅäÖÃ»òÕßË¢ĞÂÓ¦ÓÃÉÏÏÂÎÄ
+					// é…ç½®æˆ–è€…åˆ·æ–°åº”ç”¨ä¸Šä¸‹æ–‡
 					configureAndRefreshWebApplicationContext(cwac);
 				}
 			}
@@ -651,11 +651,11 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 			}
 		}
 
-		//ÉèÖÃspringMVC IOCÈİÆ÷µÄÏà¹ØÊôĞÔ
+		//è®¾ç½®springMVC IOCå®¹å™¨çš„ç›¸å…³å±æ€§
 		wac.setServletContext(getServletContext());
 		wac.setServletConfig(getServletConfig());
 		wac.setNamespace(getNamespace());
-		// Ìí¼ÓÕë¶ÔContextRefreshListenerÊÂ¼şµÄ¼àÌı
+		// æ·»åŠ é’ˆå¯¹ContextRefreshListeneräº‹ä»¶çš„ç›‘å¬
 		wac.addApplicationListener(new SourceFilteringListener(wac, new ContextRefreshListener()));
 
 		// The wac environment's #initPropertySources will be called in any case when the context
@@ -666,10 +666,10 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 			((ConfigurableWebEnvironment) env).initPropertySources(getServletContext(), getServletConfig());
 		}
 
-		// ¿Õ·½·¨
+		// ç©ºæ–¹æ³•
 		postProcessWebApplicationContext(wac);
 		applyInitializers(wac);
-		//³õÊ¼»¯springMVC¸÷ÖÖµÄÏà¹ØÅäÖÃ£¬¸÷ÖÖ×¢ÈëµÄController£¬ÅäÖÃÎÄ¼şµÈ
+		//åˆå§‹åŒ–springMVCå„ç§çš„ç›¸å…³é…ç½®ï¼Œå„ç§æ³¨å…¥çš„Controllerï¼Œé…ç½®æ–‡ä»¶ç­‰
 		wac.refresh();
 	}
 

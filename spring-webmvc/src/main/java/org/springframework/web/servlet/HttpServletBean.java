@@ -150,14 +150,14 @@ public abstract class HttpServletBean extends HttpServlet implements Environment
 		}
 
 		// Set bean properties from init parameters.
-		// »ñÈ¡Web.xmlÀïÃæµÄservletµÄinit-param£¨web.xml£©
+		// è·å–Web.xmlé‡Œé¢çš„servletçš„init-paramï¼ˆweb.xmlï¼‰
 		PropertyValues pvs = new ServletConfigPropertyValues(getServletConfig(), this.requiredProperties);
 		if (!pvs.isEmpty()) {
 			try {
-				// Ê¹ÓÃBeanWrapper¹¹ÔìDispatcherServlet
+				// ä½¿ç”¨BeanWrapperæ„é€ DispatcherServlet
 				BeanWrapper bw = PropertyAccessorFactory.forBeanPropertyAccess(this);
 				ResourceLoader resourceLoader = new ServletContextResourceLoader(getServletContext());
-				// ResourceÊôĞÔ±à¼­Æ÷
+				// Resourceå±æ€§ç¼–è¾‘å™¨
 				bw.registerCustomEditor(Resource.class, new ResourceEditor(resourceLoader, getEnvironment()));
 				initBeanWrapper(bw);
 				bw.setPropertyValues(pvs, true);
