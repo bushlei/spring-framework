@@ -194,6 +194,7 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 		if (logger.isDebugEnabled()) {
 			logger.debug("Looking for request mappings in application context: " + getApplicationContext());
 		}
+		// 找出spring容器中初始化的所有bean
 		String[] beanNames = (this.detectHandlerMethodsInAncestorContexts ?
 				BeanFactoryUtils.beanNamesForTypeIncludingAncestors(getApplicationContext(), Object.class) :
 				getApplicationContext().getBeanNamesForType(Object.class));
@@ -210,7 +211,9 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 						logger.debug("Could not resolve target class for bean with name '" + beanName + "'", ex);
 					}
 				}
+				// isHandler方法表示该类的注解中是否有@Controller或@RequestMapping
 				if (beanType != null && isHandler(beanType)) {
+					// 检测HandlerMethod
 					detectHandlerMethods(beanName);
 				}
 			}
@@ -227,11 +230,14 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 				getApplicationContext().getType((String) handler) : handler.getClass());
 		final Class<?> userType = ClassUtils.getUserClass(handlerType);
 
+		// key是Method，value是RequestMappingInfo
 		Map<Method, T> methods = MethodIntrospector.selectMethods(userType,
 				new MethodIntrospector.MetadataLookup<T>() {
+			// 泛型是RequestMappingInfo
 					@Override
 					public T inspect(Method method) {
 						try {
+							// getMappingForMethod是一个抽象方法，具体实现由子类RequestMappingHandlerMapping实现
 							return getMappingForMethod(method, userType);
 						}
 						catch (Throwable ex) {
@@ -247,6 +253,7 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 		for (Map.Entry<Method, T> entry : methods.entrySet()) {
 			Method invocableMethod = AopUtils.selectInvocableMethod(entry.getKey(), userType);
 			T mapping = entry.getValue();
+			// 使用符合条件的method来注册各种HandlerMethod
 			registerHandlerMethod(handler, invocableMethod, mapping);
 		}
 	}
@@ -534,7 +541,9 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 		public void register(T mapping, Object handler, Method method) {
 			this.readWriteLock.writeLock().lock();
 			try {
+				// 创建新的HandlerMethod
 				HandlerMethod handlerMethod = createHandlerMethod(handler, method);
+				// 看是否已经存在key为传入的RequestMappingInfo的HandlerMethod，有的就抛异常，同一个mapping，得到的两个HandlerMethod不一样
 				assertUniqueMethodMapping(handlerMethod, mapping);
 
 				if (logger.isInfoEnabled()) {
