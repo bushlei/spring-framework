@@ -118,19 +118,19 @@ public abstract class AbstractRefreshableApplicationContext extends AbstractAppl
 	 */
 	@Override
 	protected final void refreshBeanFactory() throws BeansException {
-		// ¼ì²éBeanFactoryÊÇ·ñÒÑ¾­´æÔÚ£¬´æÔÚµÄ»°Ïú»Ù
+		// æ£€æŸ¥BeanFactoryæ˜¯å¦å·²ç»å­˜åœ¨ï¼Œå­˜åœ¨çš„è¯é”€æ¯
 		if (hasBeanFactory()) {
 			destroyBeans();
 			closeBeanFactory();
 		}
 		try {
-			// ÊµÀı»¯DefaultListableBeanFactory
-			// ×¢ÒâÔÚÕâÀïÃæÓĞÒ»¸ö·½·¨getInternalParentBeanFactory()£¬Õâ¸ö·½·¨»ñµÃ²¢ÉèÖÃÁË¸¸ÈİÆ÷¡£µ±È»ÔÚspringÆô¶¯µÄ¹ı³ÌÖĞÕâ¸ö¸¸ÈİÆ÷ÊÇ¿ÕµÄ¡£
+			// å®ä¾‹åŒ–DefaultListableBeanFactory
+			// æ³¨æ„åœ¨è¿™é‡Œé¢æœ‰ä¸€ä¸ªæ–¹æ³•getInternalParentBeanFactory()ï¼Œè¿™ä¸ªæ–¹æ³•è·å¾—å¹¶è®¾ç½®äº†çˆ¶å®¹å™¨ã€‚å½“ç„¶åœ¨springå¯åŠ¨çš„è¿‡ç¨‹ä¸­è¿™ä¸ªçˆ¶å®¹å™¨æ˜¯ç©ºçš„ã€‚
 			DefaultListableBeanFactory beanFactory = createBeanFactory();
 			beanFactory.setSerializationId(getId());
-			// ÉèÖÃÊÇ·ñÍ¬Ãû¸²¸ÇºÍÊÇ·ñÑ­»·ÒıÓÃ
+			// è®¾ç½®æ˜¯å¦åŒåè¦†ç›–å’Œæ˜¯å¦å¾ªç¯å¼•ç”¨
 			customizeBeanFactory(beanFactory);
-			// ×°ÔØ³ÉBeanDefinition¶ÔÏó
+			// è£…è½½æˆBeanDefinitionå¯¹è±¡
 			loadBeanDefinitions(beanFactory);
 			synchronized (this.beanFactoryMonitor) {
 				this.beanFactory = beanFactory;
@@ -220,11 +220,11 @@ public abstract class AbstractRefreshableApplicationContext extends AbstractAppl
 	 * @see DefaultListableBeanFactory#setAllowEagerClassLoading
 	 */
 	protected void customizeBeanFactory(DefaultListableBeanFactory beanFactory) {
-		// beanÊÇ·ñÔÊĞí¸²¸Ç
+		// beanæ˜¯å¦å…è®¸è¦†ç›–
 		if (this.allowBeanDefinitionOverriding != null) {
 			beanFactory.setAllowBeanDefinitionOverriding(this.allowBeanDefinitionOverriding);
 		}
-		//beanÊÇ·ñÔÊĞíÑ­»·ÒıÓÃ
+		//beanæ˜¯å¦å…è®¸å¾ªç¯å¼•ç”¨
 		if (this.allowCircularReferences != null) {
 			beanFactory.setAllowCircularReferences(this.allowCircularReferences);
 		}

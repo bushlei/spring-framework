@@ -484,15 +484,26 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * Initialize the strategy objects that this servlet uses.
 	 * <p>May be overridden in subclasses in order to initialize further strategy objects.
 	 */
+	//初始化SpringMVC的一些策略，也是springMVC主要的组件
 	protected void initStrategies(ApplicationContext context) {
+		//文件上传解析，如果请求类型是multipart将通过MultipartResolver进行文件上传解析
 		initMultipartResolver(context);
+		// 初始化一些多语言实现相关的类
 		initLocaleResolver(context);
+		// 初始化主题解析器
 		initThemeResolver(context);
+		// 初始化HandlerMapping，HandlerMapping的工作就是为每个请求找到合适的请求找到一个处理器handler
 		initHandlerMappings(context);
+		// 初始化HandlerAdapter，HandlerAdapter是真正调用Controller操作的类
+		// 是spring的核心功能，所有的请求对应Controller方法都是通过HandlerAdapter，大概作用就是进行方法映射和调用并且返回结果
 		initHandlerAdapters(context);
+		// 初始化HandlerExceptionResolver，用来操作异常
 		initHandlerExceptionResolvers(context);
+		// 初始化到ViewName的处理器
 		initRequestToViewNameTranslator(context);
+		// 初始化View的解析器
 		initViewResolvers(context);
+		// 初始化FlashMapManager，与链接跳转相关的
 		initFlashMapManager(context);
 	}
 
@@ -503,6 +514,7 @@ public class DispatcherServlet extends FrameworkServlet {
 	 */
 	private void initMultipartResolver(ApplicationContext context) {
 		try {
+			//bean id被写死，在配置的时候需要注意,文件上传时需要注入bean名称为multipartResolver的类
 			this.multipartResolver = context.getBean(MULTIPART_RESOLVER_BEAN_NAME, MultipartResolver.class);
 			if (logger.isDebugEnabled()) {
 				logger.debug("Using MultipartResolver [" + this.multipartResolver + "]");
@@ -567,11 +579,15 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * <p>If no HandlerMapping beans are defined in the BeanFactory for this namespace,
 	 * we default to BeanNameUrlHandlerMapping.
 	 */
+	//会加载HandlerMapping，默认使用BeanNameUrlHandlerMapping
 	private void initHandlerMappings(ApplicationContext context) {
 		this.handlerMappings = null;
 
 		if (this.detectAllHandlerMappings) {
 			// Find all HandlerMappings in the ApplicationContext, including ancestor contexts.
+			// BeanNameUrlHandlerMapping SimpleUrlHandlerMapping RequestMappingHandlerMapping...
+			// 默认加载所有的HandlerMapping,url到controller和方法的映射
+			// 注解方式RequestMappingHandlerMapping和SimpleUrlHandlerMapping
 			Map<String, HandlerMapping> matchingBeans =
 					BeanFactoryUtils.beansOfTypeIncludingAncestors(context, HandlerMapping.class, true, false);
 			if (!matchingBeans.isEmpty()) {
@@ -605,6 +621,7 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * <p>If no HandlerAdapter beans are defined in the BeanFactory for this namespace,
 	 * we default to SimpleControllerHandlerAdapter.
 	 */
+	// 三个默认的HandlerAdapter对象，分别是HttpRequestHandlerAdapter，SimpleControllerHandlerAdapter和AnnotationMethodHandlerAdapter
 	private void initHandlerAdapters(ApplicationContext context) {
 		this.handlerAdapters = null;
 
@@ -934,17 +951,23 @@ public class DispatcherServlet extends FrameworkServlet {
 			Exception dispatchException = null;
 
 			try {
+				//优先判断一下是不是文件上传的request
 				processedRequest = checkMultipart(request);
 				multipartRequestParsed = (processedRequest != request);
 
 				// Determine handler for the current request.
+				// 获取到相应处理该request的HandlerExecutionChain，静态资源一般都是由ResourceHttpRequestHandler进行处理的
 				mappedHandler = getHandler(processedRequest);
+				//如果没有找到相应的handler，这里就是大家经常从日志里面看到的这段英文No mapping found for HTTP request with URI
+				//这个地方没有找到相应的处理handler有两种处理方式，一种（默认）返回404的状态码，一种是直接抛出异常，第二种方式需要设置初始化参数的
+				//throwExceptionIfNoHandlerFound 这个参数设置成ture即可
 				if (mappedHandler == null || mappedHandler.getHandler() == null) {
 					noHandlerFound(processedRequest, response);
 					return;
 				}
 
 				// Determine handler adapter for the current request.
+				// 通过handler找到对应处理的handlerAdapter
 				HandlerAdapter ha = getHandlerAdapter(mappedHandler.getHandler());
 
 				// Process last-modified header, if supported by the handler.
@@ -960,18 +983,25 @@ public class DispatcherServlet extends FrameworkServlet {
 					}
 				}
 
+				//执行HandlerExecutionChain所有Interceptor中的preHandle方法，一旦有一个返回了false那么请求就不进行继续处理
+				//这也是为什么preHandle 返回了false就可以拦截用户继续执行了
 				if (!mappedHandler.applyPreHandle(processedRequest, response)) {
 					return;
 				}
 
 				// Actually invoke the handler.
+				//实际调用的handler，如果是http请求会调用相应的HandlerMethod 这里里面包含了具体的方法，通过反射调用，
+				// 如果有返回的视图，那么ModelAndView会返回相应的视图对象，如果只是普通请求或者json请求会返回null
 				mv = ha.handle(processedRequest, response, mappedHandler.getHandler());
 
 				if (asyncManager.isConcurrentHandlingStarted()) {
 					return;
 				}
 
+				//这块会校验是否添加了视图，如果没有视图就会添加一个默认的视图，通过url的规则来拼凑
 				applyDefaultViewName(processedRequest, mv);
+				//这块逻辑是执行HandlerExecutionChain所有Interceptor中的postHandle方法，从这块代码看来，
+				// postHandle的执行时机是在执行完方法后没有把响应写入到response中执行的
 				mappedHandler.applyPostHandle(processedRequest, response, mv);
 			}
 			catch (Exception ex) {
@@ -982,6 +1012,7 @@ public class DispatcherServlet extends FrameworkServlet {
 				// making them available for @ExceptionHandler methods and other scenarios.
 				dispatchException = new NestedServletException("Handler dispatch failed", err);
 			}
+			// 处理请求，把参数都写入到request里面
 			processDispatchResult(processedRequest, response, mappedHandler, mv, dispatchException);
 		}
 		catch (Exception ex) {
@@ -995,6 +1026,7 @@ public class DispatcherServlet extends FrameworkServlet {
 			if (asyncManager.isConcurrentHandlingStarted()) {
 				// Instead of postHandle and afterCompletion
 				if (mappedHandler != null) {
+					//最后调用HandlerExecutionChain所有Interceptor中的postHandle方法
 					mappedHandler.applyAfterConcurrentHandlingStarted(processedRequest, response);
 				}
 			}
