@@ -288,7 +288,7 @@ public class ContextLoader {
 					if (cwac.getParent() == null) {
 						// The context instance was injected without an explicit parent ->
 						// determine parent for root web application context, if any.
-						// 看看有没有父上下文，如果有就会将父上下问的信息合并到本上下文中
+						// 看看有没有父上下文，如果有就会将父上下文的信息合并到本上下文中
 						// 此方法直接返回null
 						ApplicationContext parent = loadParentContext(servletContext);
 						cwac.setParent(parent);
